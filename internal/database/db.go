@@ -51,3 +51,50 @@ func (db *DB) StorePage(page PageData) error {
 	_, err := db.Exec(query, page.URL, page.StatusCode, page.CrawledAt)
 	return err
 }
+
+func (db *DB) GetPages() ([]PageData, error) {
+	rows, err := db.Query(`
+		SELECT url, status_code, crawled_at
+		FROM pages
+		ORDER BY crawled_at DESC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pages []PageData
+	for rows.Next() {
+		var page PageData
+		err := rows.Scan(&page.URL, &page.StatusCode, &page.CrawledAt)
+		if err != nil {
+			return nil, err
+		}
+		pages = append(pages, page)
+	}
+	return pages, nil
+}
+
+func (db *DB) GetPagesByStatus(status string) ([]PageData, error) {
+	rows, err := db.Query(`
+		SELECT url, status_code, crawled_at
+		FROM pages
+		WHERE status_code = ?
+		ORDER BY crawled_at DESC
+	`, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pages []PageData
+	for rows.Next() {
+		var page PageData
+		err := rows.Scan(&page.URL, &page.StatusCode, &page.CrawledAt)
+		if err != nil {
+			return nil, err
+		}
+		pages = append(pages, page)
+	}
+	return pages, nil
+}

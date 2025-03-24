@@ -7,10 +7,14 @@ VERSION=latest
 all: build
 
 build:
-	go build -o $(APP_NAME) ./main.go
+	go build -o spiderlite ./cmd/crawler
+	go build -o spiderlite-server ./cmd/server
 
-run:
-	./$(APP_NAME) https://example.com
+run: build
+	./spiderlite https://example.com
+
+server: build
+	./spiderlite-server
 
 docker:
 	docker build -t $(APP_NAME):$(VERSION) .
@@ -26,4 +30,4 @@ tidy:
 	go mod tidy
 
 clean:
-	rm -f $(APP_NAME)
+	rm -f spiderlite spiderlite-server

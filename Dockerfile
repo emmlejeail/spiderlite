@@ -9,18 +9,25 @@ RUN go mod download
 
 # Copy source and build binary
 COPY . .
-RUN go build -o spiderlite ./main.go
+RUN CGO_ENABLED=1 apk add --no-cache gcc musl-dev sqlite-dev && \
+    go build -o spiderlite ./cmd/spiderlite
 
 # Use a minimal runtime image
 FROM alpine:latest
 WORKDIR /app
 
+# Install SQLite runtime dependencies
+RUN apk add --no-cache sqlite-libs
+
 # Copy the binary from builder
 COPY --from=builder /app/spiderlite .
 
-# Use non-root user (optional security)
-RUN adduser -D appuser
-USER appuser
+# Create data directory for SQLite database
+RUN mkdir data && \
+    chown -R nobody:nobody /app
+
+# Use non-root user
+USER nobody
 
 # Default command (can be overridden)
 ENTRYPOINT ["./spiderlite"]
