@@ -1,4 +1,4 @@
-# SpiderLite
+# SpiderLite 🕷️
 
 SpiderLite is a lightweight web crawler with a built-in API server for querying crawled data. It respects robots.txt rules and stores crawl results in a SQLite database.
 
