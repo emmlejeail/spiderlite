@@ -9,18 +9,18 @@ RUN go mod download
 
 # Copy source and build binary
 COPY . .
-RUN go build -o crawler ./main.go
+RUN go build -o spiderlite ./main.go
 
 # Use a minimal runtime image
 FROM alpine:latest
 WORKDIR /app
 
 # Copy the binary from builder
-COPY --from=builder /app/crawler .
+COPY --from=builder /app/spiderlite .
 
 # Use non-root user (optional security)
 RUN adduser -D appuser
 USER appuser
 
 # Default command (can be overridden)
-ENTRYPOINT ["./crawler"]
+ENTRYPOINT ["./spiderlite"]
