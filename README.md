@@ -14,7 +14,7 @@ SpiderLite is a lightweight web crawler with a built-in API server for querying 
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.23 or higher
 - SQLite3
 - Make (optional, for using Makefile commands)
 
