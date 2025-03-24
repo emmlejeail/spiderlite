@@ -8,18 +8,21 @@ import (
 	"time"
 
 	"spiderlite/internal/database"
+	"spiderlite/internal/metrics"
 	"spiderlite/internal/parser"
 )
 
 type Crawler struct {
 	db      *database.DB
+	metrics *metrics.Metrics
 	visited map[string]bool
 	client  *http.Client
 }
 
-func New(db *database.DB) *Crawler {
+func New(db *database.DB, metrics *metrics.Metrics) *Crawler {
 	return &Crawler{
 		db:      db,
+		metrics: metrics,
 		visited: make(map[string]bool),
 		client:  &http.Client{},
 	}
@@ -39,6 +42,11 @@ func (c *Crawler) Start(startURL *url.URL) error {
 }
 
 func (c *Crawler) crawl(u *url.URL, robots *RobotsChecker) error {
+	start := time.Now()
+	defer func() {
+		c.metrics.TimeCrawl(time.Since(start), u.Host)
+	}()
+
 	if c.visited[u.String()] {
 		return nil
 	}
@@ -66,6 +74,8 @@ func (c *Crawler) crawl(u *url.URL, robots *RobotsChecker) error {
 		return err
 	}
 
+	c.metrics.IncrementPagesProcessed(resp.StatusCode, u.Host)
+
 	if resp.StatusCode != 200 {
 		return nil
 	}
@@ -74,6 +84,8 @@ func (c *Crawler) crawl(u *url.URL, robots *RobotsChecker) error {
 	if err != nil {
 		return err
 	}
+
+	c.metrics.GaugeLinksFound(len(links), u.Host)
 
 	for _, link := range links {
 		if !robots.IsAllowed(link.Path) {

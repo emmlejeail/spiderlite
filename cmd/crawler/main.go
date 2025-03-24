@@ -7,6 +7,7 @@ import (
 
 	"spiderlite/internal/crawler"
 	"spiderlite/internal/database"
+	"spiderlite/internal/metrics"
 )
 
 func main() {
@@ -20,6 +21,13 @@ func main() {
 		log.Fatalf("Invalid URL: %v", err)
 	}
 
+	// Initialize metrics
+	metrics, err := metrics.New()
+	if err != nil {
+		log.Fatalf("Failed to initialize metrics: %v", err)
+	}
+	defer metrics.Close()
+
 	// Initialize database
 	db, err := database.NewDB("crawler.db")
 	if err != nil {
@@ -27,8 +35,8 @@ func main() {
 	}
 	defer db.Close()
 
-	// Create crawler instance
-	c := crawler.New(db)
+	// Create crawler instance with metrics
+	c := crawler.New(db, metrics)
 
 	// Start crawling
 	if err := c.Start(parsedURL); err != nil {

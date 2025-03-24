@@ -4,22 +4,27 @@ import (
 	"encoding/json"
 	"net/http"
 	"spiderlite/internal/database"
+	"spiderlite/internal/metrics"
 )
 
 type Server struct {
-	db *database.DB
+	db      *database.DB
+	metrics *metrics.Metrics
 }
 
-func New(db *database.DB) *Server {
-	return &Server{db: db}
+func New(db *database.DB, metrics *metrics.Metrics) *Server {
+	return &Server{
+		db:      db,
+		metrics: metrics,
+	}
 }
 
 func (s *Server) Start(addr string) error {
 	mux := http.NewServeMux()
 
-	// Register routes
-	mux.HandleFunc("/pages", s.handleGetPages)
-	mux.HandleFunc("/pages/status", s.handleGetPagesByStatus)
+	// Register routes with metrics middleware
+	mux.HandleFunc("/pages", metricsMiddleware(s.metrics, "/pages")(s.handleGetPages))
+	mux.HandleFunc("/pages/status", metricsMiddleware(s.metrics, "/pages/status")(s.handleGetPagesByStatus))
 
 	return http.ListenAndServe(addr, mux)
 }

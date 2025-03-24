@@ -3,6 +3,11 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
+ENV DD_AGENT_HOST=localhost
+ENV DD_TRACE_AGENT_PORT=8126
+ENV DD_ENV=prod
+ENV DD_SERVICE=spiderlite
+
 # Install dependencies
 COPY go.mod go.sum ./
 RUN go mod download
