@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/DataDog/datadog-go/v5/statsd"
@@ -74,7 +75,7 @@ func (m *Metrics) IncrementAPIRequests(endpoint, method string, statusCode int) 
 	tags := []string{
 		"endpoint:" + endpoint,
 		"method:" + method,
-		"status:" + string(statusCode),
+		"status:" + strconv.Itoa(statusCode),
 	}
 	m.client.Incr("api.requests", tags, 1)
 }

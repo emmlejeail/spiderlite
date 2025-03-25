@@ -2,7 +2,7 @@ APP_NAME=spiderlite
 MODULE=github.com/emmelejail/$(APP_NAME)
 VERSION=latest
 
-.PHONY: all build run docker docker-run lint tidy clean
+.PHONY: all build run docker docker-run lint tidy clean test test-coverage
 
 all: build
 
@@ -31,3 +31,10 @@ tidy:
 
 clean:
 	rm -f spiderlite spiderlite-server
+
+test:
+	go test ./...
+
+test-coverage:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out
