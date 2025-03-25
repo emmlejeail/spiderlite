@@ -8,136 +8,179 @@ SpiderLite is a lightweight web crawler with a built-in API server for querying 
 - robots.txt compliance
 - SQLite storage for crawl results
 - RESTful API to query crawled data
+- Datadog integration for metrics
 - Docker support
 
-## Installation
-
-### Prerequisites
+## Prerequisites
 
 - Go 1.23 or higher
-- SQLite3
-- Make (optional, for using Makefile commands)
+- Docker and Docker Compose
+- Datadog account and API key
 
-### Building from source
+## Quick Start
 
+1. Clone the repository:
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/spiderlite.git
 cd spiderlite
-
-# Install dependencies
-go mod download
-
-# Build both crawler and server
-make build
 ```
 
-## Usage
-
-### Web Crawler
-
-To start crawling a website:
-
+2. Create a `.env` file:
 ```bash
-# Using make
-make run URL=https://example.com
-
-# Or directly
-./spiderlite https://example.com
+cp .env.example .env
+# Edit .env with your Datadog API key
 ```
 
-### API Server
-
-To start the API server:
-
+3. Start the application:
 ```bash
-# Using make
-make server
-
-# Or directly
-./spiderlite-server -addr=:8080 -db=crawler.db
+docker-compose up -d
 ```
 
-### Docker
-
-Build and run using Docker:
-
+4. Start crawling a website:
 ```bash
-# Build the image
-docker build -t spiderlite .
-
-# Run the crawler
-docker run spiderlite https://example.com
-
-# Run the server
-docker run -p 8080:8080 spiderlite-server
+curl -X POST "http://localhost:8080/crawl?url=https://example.com"
 ```
 
 ## API Endpoints
 
-### Get all crawled pages
+### Start a Crawl
+```bash
+POST /crawl?url=https://example.com
+```
+Response:
+```json
+{
+  "status": "started",
+  "message": "Crawl started for https://example.com"
+}
+```
 
+### Get All Pages
+```bash
 GET /pages
-
+```
 Response:
 ```json
-[
-  {
-    "URL": "https://example.com",
-    "StatusCode": 200,
-    "CrawledAt": "2024-01-01T12:34:56Z"
-  }
-]
+{
+  "count": 1,
+  "pages": [
+    {
+      "URL": "https://example.com",
+      "StatusCode": 200,
+      "CrawledAt": "2024-01-01T12:34:56Z"
+    }
+  ]
+}
 ```
 
-### Get pages by status code
-
+### Get Pages by Status Code
+```bash
 GET /pages/status?code=200
-
+```
 Response:
 ```json
-[
-  {
-    "URL": "https://example.com",
-    "StatusCode": 200,
-    "CrawledAt": "2024-01-01T12:34:56Z"
-  }
-]
+{
+  "status": 200,
+  "count": 1,
+  "pages": [
+    {
+      "URL": "https://example.com",
+      "StatusCode": 200,
+      "CrawledAt": "2024-01-01T12:34:56Z"
+    }
+  ]
+}
 ```
 
-## Project Structure
+### Debug Information
+```bash
+GET /debug
+```
+Response:
+```json
+{
+  "database_path": "/data/crawler.db",
+  "table_count": 1,
+  "tables": {
+    "pages": 1
+  }
+}
+```
 
-spiderlite/
-├── cmd/
-│ ├── crawler/ # Crawler executable
-│ └── server/ # API server executable
-├── internal/
-│ ├── crawler/ # Crawler logic
-│ ├── database/ # Database operations
-│ ├── parser/ # HTML parsing
-│ └── server/ # HTTP server
-├── Dockerfile
-├── Makefile
-└── README.md
+## Configuration
 
+Environment variables (in `.env`):
+
+```env
+DD_API_KEY=your_api_key_here    # Datadog API key
+DD_ENV=dev                      # Environment (dev, prod, etc.)
+DD_SERVICE=spiderlite          # Service name in Datadog
+DB_PATH=/data/crawler.db       # SQLite database path
+```
+
+## Monitoring
+
+### Datadog Metrics
+
+- `spiderlite.crawler.pages_processed`: Counter of processed pages
+- `spiderlite.crawler.page_process_time`: Timing of page processing
+- `spiderlite.crawler.errors`: Counter of crawl errors
+- `spiderlite.api.requests`: Counter of API requests
+
+### Datadog Logs
+
+Logs are automatically collected and include:
+- Crawl operations
+- Page processing results
+- API requests
+- Error details
 
 ## Development
 
-### Available Make Commands
+### Prerequisites
 
+- Go 1.23+
+- Docker and Docker Compose
+- Make (optional)
+
+### Local Development
+
+1. Install dependencies:
 ```bash
-make build    # Build both crawler and server
-make run      # Build and run the crawler
-make server   # Build and run the API server
-make clean    # Clean up built binaries
+go mod download
 ```
 
-### Adding New Features
+2. Run tests:
+```bash
+go test ./...
+```
 
-1. Create a new branch
-2. Add your feature
-3. Write tests
-4. Submit a pull request
+3. Build:
+```bash
+go build -o spiderlite ./cmd/crawler
+go build -o spiderlite-server ./cmd/server
+```
+
+### Docker Development
+
+```bash
+# Build and start services
+docker-compose up --build -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
