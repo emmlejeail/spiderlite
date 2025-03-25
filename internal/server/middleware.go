@@ -7,7 +7,7 @@ import (
 	"spiderlite/internal/metrics"
 )
 
-func metricsMiddleware(metrics *metrics.Metrics, endpoint string) func(http.HandlerFunc) http.HandlerFunc {
+func metricsMiddleware(metrics metrics.MetricsClient, endpoint string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()

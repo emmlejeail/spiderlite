@@ -17,12 +17,8 @@ func TestServer(t *testing.T) {
 	}
 	defer db.Close()
 
-	// Create test metrics (mock or real)
-	m, err := metrics.New()
-	if err != nil {
-		t.Fatalf("Failed to create metrics: %v", err)
-	}
-	defer m.Close()
+	// Use mock metrics instead of real Datadog client
+	m := metrics.NewNoopMetrics()
 
 	// Create server
 	srv := New(db, m)

@@ -36,12 +36,8 @@ func TestCrawler(t *testing.T) {
 	}
 	defer db.Close()
 
-	// Create test metrics
-	m, err := metrics.New()
-	if err != nil {
-		t.Fatalf("Failed to create metrics: %v", err)
-	}
-	defer m.Close()
+	// Use mock metrics
+	m := metrics.NewNoopMetrics()
 
 	// Create crawler
 	c := New(db, m)

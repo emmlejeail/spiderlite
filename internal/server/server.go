@@ -14,15 +14,15 @@ import (
 
 type Server struct {
 	db      *database.DB
-	metrics *metrics.Metrics
+	metrics metrics.MetricsClient
 	crawler *crawler.Crawler
 }
 
-func New(db *database.DB, metrics *metrics.Metrics) *Server {
+func New(db *database.DB, m metrics.MetricsClient) *Server {
 	return &Server{
 		db:      db,
-		metrics: metrics,
-		crawler: crawler.New(db, metrics),
+		metrics: m,
+		crawler: crawler.New(db, m),
 	}
 }
 

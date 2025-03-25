@@ -15,15 +15,15 @@ import (
 
 type Crawler struct {
 	db      *database.DB
-	metrics *metrics.Metrics
+	metrics metrics.MetricsClient
 	visited map[string]bool
 	client  *http.Client
 }
 
-func New(db *database.DB, metrics *metrics.Metrics) *Crawler {
+func New(db *database.DB, m metrics.MetricsClient) *Crawler {
 	return &Crawler{
 		db:      db,
-		metrics: metrics,
+		metrics: m,
 		visited: make(map[string]bool),
 		client:  &http.Client{},
 	}

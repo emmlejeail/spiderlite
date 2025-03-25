@@ -10,11 +10,21 @@ import (
 	"github.com/DataDog/datadog-go/v5/statsd"
 )
 
-type Metrics struct {
+type MetricsClient interface {
+	IncrementPagesProcessed(statusCode int, host string)
+	IncrementCrawlErrors()
+	TimeCrawl(duration time.Duration, host string)
+	IncrementAPIRequests(endpoint, method string, statusCode int)
+	TimeAPIRequest(endpoint string, duration time.Duration)
+	Close() error
+}
+
+// Rename existing Metrics struct to MetricsDD
+type MetricsDD struct {
 	client *statsd.Client
 }
 
-func New() (*Metrics, error) {
+func New() (*MetricsDD, error) {
 	// Get host from environment or use default
 	host := os.Getenv("DD_AGENT_HOST")
 	if host == "" {
@@ -40,15 +50,15 @@ func New() (*Metrics, error) {
 		log.Printf("Successfully connected to Datadog agent at %s", host)
 	}
 
-	return &Metrics{client: client}, nil
+	return &MetricsDD{client: client}, nil
 }
 
-func (m *Metrics) Close() error {
+func (m *MetricsDD) Close() error {
 	return m.client.Close()
 }
 
 // Métriques pour le crawler
-func (m *Metrics) IncrementPagesProcessed(statusCode int, host string) {
+func (m *MetricsDD) IncrementPagesProcessed(statusCode int, host string) {
 	tags := []string{
 		fmt.Sprintf("status:%d", statusCode),
 		fmt.Sprintf("host:%s", host),
@@ -58,20 +68,20 @@ func (m *Metrics) IncrementPagesProcessed(statusCode int, host string) {
 	}
 }
 
-func (m *Metrics) TimeCrawl(duration time.Duration, host string) {
+func (m *MetricsDD) TimeCrawl(duration time.Duration, host string) {
 	tags := []string{fmt.Sprintf("host:%s", host)}
 	if err := m.client.Timing("crawler.page_process_time", duration, tags, 1); err != nil {
 		log.Printf("Failed to send metric crawler.page_process_time: %v", err)
 	}
 }
 
-func (m *Metrics) GaugeLinksFound(count int, host string) {
+func (m *MetricsDD) GaugeLinksFound(count int, host string) {
 	tags := []string{"host:" + host}
 	m.client.Gauge("crawler.links_found", float64(count), tags, 1)
 }
 
 // Métriques pour l'API
-func (m *Metrics) IncrementAPIRequests(endpoint, method string, statusCode int) {
+func (m *MetricsDD) IncrementAPIRequests(endpoint, method string, statusCode int) {
 	tags := []string{
 		"endpoint:" + endpoint,
 		"method:" + method,
@@ -80,12 +90,12 @@ func (m *Metrics) IncrementAPIRequests(endpoint, method string, statusCode int) 
 	m.client.Incr("api.requests", tags, 1)
 }
 
-func (m *Metrics) TimeAPIRequest(endpoint string, duration time.Duration) {
+func (m *MetricsDD) TimeAPIRequest(endpoint string, duration time.Duration) {
 	tags := []string{"endpoint:" + endpoint}
 	m.client.Timing("api.request_duration", duration, tags, 1)
 }
 
-func (m *Metrics) IncrementCrawlErrors() {
+func (m *MetricsDD) IncrementCrawlErrors() {
 	if err := m.client.Incr("crawler.errors", nil, 1); err != nil {
 		log.Printf("Failed to send metric crawler.errors: %v", err)
 	}
