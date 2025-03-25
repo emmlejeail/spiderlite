@@ -1,6 +1,6 @@
 module spiderlite
 
-go 1.24.1
+go 1.23.0
 
 require (
 	github.com/DataDog/datadog-go/v5 v5.6.0
